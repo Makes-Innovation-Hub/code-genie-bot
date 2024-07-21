@@ -14,6 +14,5 @@ This Telegram bot, named Code Genie, is designed to help graduates continue thei
 User Interface: Interacts with users via the Telegram platform. \
 Bot Logic: Handles commands and messages from users, processes requests, and sends responses. 
 
-
 User <----> Bot <---> Server <-----> Database 
 
