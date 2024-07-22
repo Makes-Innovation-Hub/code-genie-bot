@@ -37,7 +37,7 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
 async def api_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         response = requests.get(os.getenv("SERVER_URL"))
-        response.raise_for_status()  # Raise HTTPError for bad responses
+        response.raise_for_status()
         data = response.json()
         await update.message.reply_text(data)
     except requests.RequestException as e:
