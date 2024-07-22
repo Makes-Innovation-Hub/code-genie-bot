@@ -1,5 +1,6 @@
 import pytest
-from unittest.mock import AsyncMock
+import requests
+from unittest.mock import AsyncMock, patch
 from telegram import Update, Message
 from telegram.ext import ContextTypes
 from genie_bot import start, help_command, get_public_ip
@@ -27,27 +28,47 @@ async def test_help_command():
     help_text = (
         "Available commands:\n"
         "/start - Start the bot\n"
-        "/help - Show this help message"
+        "/help - Show this help message\n"
+        "/ip -  get public ip"
     )
     update.message.reply_text.assert_called_once_with(help_text)
 
 @pytest.mark.asyncio
-async def test_get_public_ip():
+async def test_get_public_ip_success():
+    # Setup Mocks
+    update = AsyncMock(Update)
+    context = AsyncMock(ContextTypes.DEFAULT_TYPE)
+    message = AsyncMock(Message)
+    update.message = message
+    
+    # Mock the requests.get to simulate a successful API response
+    with patch('genie_bot.requests.get') as mocked_get:
+        mocked_get.return_value.json.return_value = {'ip': '123.123.123.123'}
+        mocked_get.return_value.status_code = 200
+
+        # Run the function
+        result = await get_public_ip(update, context)
+
+        # Assertions
+        update.message.reply_text.assert_called_once_with('The public IP address of the bot is: 123.123.123.123')
+        assert result is True
+
+@pytest.mark.asyncio
+async def test_get_public_ip_failure():
+    # Setup Mocks
     update = AsyncMock(Update)
     context = AsyncMock(ContextTypes.DEFAULT_TYPE)
     message = AsyncMock(Message)
     update.message = message
 
-    with patch('genie_bot.bot.requests.get') as mock_get:
-        mock_response = AsyncMock()
-        mock_response.json.return_value = {'ip': '123.123.123.123'}
-        mock_get.return_value = mock_response
+    # Mock the requests.get to simulate a failed API response
+    with patch('genie_bot.requests.get') as mocked_get:
+        mocked_get.side_effect = requests.RequestException('Failed to connect')
 
-        await get_public_ip(update, context)
+        # Run the function
+        result = await get_public_ip(update, context)
 
-        called_args = update.message.reply_text.call_args[0][0]
-        ip_address = called_args.split()[-1]
-        
-        # Regular expression to validate an IPv4 address
-        ip_pattern = re.compile(r'^(\d{1,3}\.){3}\d{1,3}$')
-        assert ip_pattern.match(ip_address), f"IP address format is incorrect: {ip_address}"
+        # Assertions
+        expected_error_message = 'Failed to get public IP address: Failed to connect'
+        update.message.reply_text.assert_called_once_with(expected_error_message)
+        assert result is False
