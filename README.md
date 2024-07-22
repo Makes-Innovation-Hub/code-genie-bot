@@ -4,15 +4,12 @@ telegram bot for code genie
 
 
 ## the structure of the bot 
-
 ├── code-genie-bot \
 │  # Package initia lization \
 │  # Main bot entry point \
 │ ├── handlers/ \
 │ │  # Handlers package initialization \
-│ │  # Handle /start command \
-│ │  # Handle messages \
-│ │  # Handle other commands \
+│ │  # Handle bot commands
 │ ├── utils/ \
 │ │  # Utils package initialization \
 │ │  # Helper functions \
