@@ -24,10 +24,8 @@
     from my_module
     import my_function
 
-  
-
 - **Naming Conventions**:
-  - **Variables**: Use lowercase words separated by underscores (e.g., `variable_name`).
+  - **Variables**: cabab_case which means to Use lowercase words separated by underscores (e.g., `variable_name`).
   - **Functions**: Use lowercase words separated by underscores (e.g., `function_name`).
     ```python
     def my_function():
