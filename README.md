@@ -7,14 +7,14 @@ telegram bot for code genie
 ├── code-genie-bot \
 │  # Package initia lization \
 │  # Main bot entry point \
-│ ├── handlers/ \
+│ ├── handlers \
 │ │  # Handlers package initialization \
-│ │  # Handle bot commands
-│ ├── utils/ \
+│ │  # Handle bot commands \
+│ ├── utils \
 │ │  # Utils package initialization \
 │ │  # Helper functions \
 │ │  # Input validation  \
-├── tests/ \
+├── tests \
 │  # Tests package initialization \
 │  # Handlers tests \
 │  # Utils tests \
