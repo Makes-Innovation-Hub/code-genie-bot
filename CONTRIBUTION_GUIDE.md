@@ -31,8 +31,6 @@ Thank you for contributing to our project! To maintain a high standard of code q
    - Pull from the `dev` branch.
    - Fix any merge conflicts and commit your fixes.
    - run all the unit tests and make sure all tests pass.
-
-
 ## Opening a Pull Request
 
 - PRs should be opened from your branch to the `dev` branch, **not** the `main` branch.
