@@ -1,6 +1,7 @@
 # code-genie-bot
 telegram bot for code genie
 
+=======
 # Environment Variables (Explanation)
 
 - `BOT_TOKEN`: The telegram bot token for full control. Example: **123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi_jklmnopqrstuvwx
@@ -26,3 +27,22 @@ To load environment variables from a `.env` file in Python, you can use the `pyt
     
     bot_token = os.getenv('BOT_TOKEN')
     ```
+## the structure of the bot 
+├── code-genie-bot \
+│  # Package initia lization \
+│  # Main bot entry point \
+│ ├── handlers \
+│ │  # Handlers package initialization \
+│ │  # Handle bot commands \
+│ ├── utils \
+│ │  # Utils package initialization \
+│ │  # Helper functions \
+│ │  # Input validation  \
+├── tests \
+│  # Tests package initialization \
+│  # Handlers tests \
+│  # Utils tests \
+├ # Environment variables \
+├ # Git ignore file \
+├ # requermint list \
+├ # readme 
