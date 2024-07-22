@@ -32,7 +32,6 @@
         if True:
       x = 5  # This is an inline comment
       print("Hello, world!")
-      
   - **Classes**: Use CapitalizedWords convention (e.g., `ClassName`).
     ```python
       class ClassName:
