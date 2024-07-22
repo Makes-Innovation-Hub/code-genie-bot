@@ -21,4 +21,4 @@ telegram bot for code genie
 ├ # Environment variables \
 ├ # Git ignore file \
 ├ # requermint list \
-├ #readme 
+├ # readme 
