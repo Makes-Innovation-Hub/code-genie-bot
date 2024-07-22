@@ -1,18 +1,28 @@
 # code-genie-bot
-telegram bot for code genie \
-The Code Genie bot will assist graduates in maintaining their study habits and tracking their progress through interactive sessions and resources. 
-## Team Members
-Basel Amin\
-Mohammad Shaheen\
-Hasan Masalha\
-Aya Abbas\
-Shaden Hakim
-## Product Goal
-This Telegram bot, named Code Genie, is designed to help graduates continue their studies and stay committed to practicing even after graduation 
-## General Architecture
-### Telegram Bot:
-User Interface: Interacts with users via the Telegram platform. \
-Bot Logic: Handles commands and messages from users, processes requests, and sends responses. 
+telegram bot for code genie
 
-User <----> Bot <---> Server <-----> Database 
+# Environment Variables (Explanation)
 
+- `BOT_TOKEN`: The telegram bot token for full control. Example: **123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi_jklmnopqrstuvwx
+**
+- `SERVER_URL`: The backend server url for making requests. Example: **http://localhost:8000/"**
+
+# Environment Variables (Usage)
+
+To load environment variables from a `.env` file in Python, you can use the `python-dotenv` package. Here’s how you can do it:
+
+1. Save an `.env` file in your project. **WARNING**: make sure it is found in `.gitignore`. Save the above [Variables](#environment-variables-explanation) in the `.env` file using the exact provided names.
+
+2. **Install the `python-dotenv` package** (if you haven’t already):
+   ```sh
+   pip install python-dotenv
+   
+3. A brief example on how to load a specific environment variable:
+    ```python
+    import os
+    from dotenv import load_dotenv
+    
+    load_dotenv()
+    
+    bot_token = os.getenv('BOT_TOKEN')
+    ```

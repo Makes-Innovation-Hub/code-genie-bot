@@ -1,7 +1,5 @@
 from handlers.handlers import *
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import requests
+from telegram.ext import ApplicationBuilder, CommandHandler
 import os
 from dotenv import load_dotenv
 
@@ -17,7 +15,8 @@ def main():
     application.add_handler(CommandHandler("help", help_command))
     # Register the /ip command handler
     application.add_handler(CommandHandler("ip", get_public_ip_command))
-
+    # Register the /api command handler
+    application.add_handler(CommandHandler('api', api_command))
     # Start the Bot
     application.run_polling()
 
