@@ -11,12 +11,11 @@ def main():
     # Create the Application and pass it your bot's token.
     application = ApplicationBuilder().token(os.getenv('BOT_TOKEN')).build()
 
-    # Register the /start command handler
+    # Register command handlers
     application.add_handler(CommandHandler("start", start_command))
-    # Register the /help command handler
     application.add_handler(CommandHandler("help", help_command))
-    # Register the /ip command handler
     application.add_handler(CommandHandler("ip", get_public_ip_command))
+    application.add_handler(CommandHandler('question', question_command))
 
     # Start the Bot
     application.run_polling()

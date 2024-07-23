@@ -1,10 +1,12 @@
+import time
 import pytest
 import requests
 # from bot import genie_bot
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 from telegram import Update, Message
 from telegram.ext import ContextTypes
-from genie_bot import start_command, help_command, get_public_ip_command
+from genie_bot import *
+import statistics
 
 @pytest.mark.asyncio
 async def test_start_command():
@@ -73,3 +75,40 @@ async def test_get_public_ip_command_failure():
         expected_error_message = 'Failed to get public IP address: Failed to connect'
         update.message.reply_text.assert_called_once_with(expected_error_message)
         assert result is False
+
+@patch('requests.post')
+def test_question_command_success(mock_post, mock_update, mock_context):
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"response": "Here is your coding question."}
+    mock_post.return_value = mock_response
+
+    question_command(mock_update, mock_context)
+    mock_update.message.reply_text.assert_called_with("Server response: Here is your coding question.")
+
+@patch('requests.post')
+def test_question_command_failure(mock_post, mock_update, mock_context):
+    mock_post.side_effect = requests.exceptions.RequestException("Network error")
+
+    question_command(mock_update, mock_context)
+    mock_update.message.reply_text.assert_called_with("An error occurred: Network error")
+
+@patch('requests.post')
+def test_question_command_latency(mock_post, mock_update, mock_context):
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"response": "Here is your coding question."}
+    mock_post.return_value = mock_response
+
+    latencies = []
+    num_tests = 10
+
+    for _ in range(num_tests):
+        start_time = time.time()
+        question_command(mock_update, mock_context)
+        end_time = time.time()
+        latencies.append(end_time - start_time)
+
+    average_latency = statistics.mean(latencies)
+    print(f"Average latency: {average_latency:.4f} seconds")
+
+    assert average_latency > 0  # Ensure latency is measured
+    mock_update.message.reply_text.assert_called_with("Server response: Here is your coding question.")
