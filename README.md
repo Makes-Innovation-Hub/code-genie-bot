@@ -27,6 +27,31 @@ To load environment variables from a `.env` file in Python, you can use the `pyt
     
     bot_token = os.getenv('BOT_TOKEN')
     ```
+
+
+# Running the Bot on AWS with PM2
+**1.** Connect to AWS EC2 Instance:
+```sh
+	ssh -i "path/to/your-key-pair.pem" ubuntu@ec2-instance_ip
+```  
+**2.** Change the directory to the repo:  
+```sh 
+	cd code-genie-bot
+```  
+**3.** Pull the changes on dev branch:  
+```sh 
+	git pull origin dev
+```  
+**4.** Install the requirements (Its recommended to use virtual env):  
+```sh
+	pip install -r requirements.txt
+```  
+**5.** Run the bot using pm2 tool (make sure that it's installed globally on your EC2 instance):  
+```sh 
+	pm2 restart code_genie_bot
+```  
+**Note**: To stop the bot run   ```pm2 stop code_genie_bot```  
+
 ## the structure of the bot 
 ├── code-genie-bot \
 │  # Package initia lization \
