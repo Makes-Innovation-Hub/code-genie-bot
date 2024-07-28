@@ -46,7 +46,7 @@ Run command for genie_bot :
 │  # Package initialization \  
 │  # Main bot entry point \  
 │ ├── config\  
-│ │  # managing and loading configuration settings 
+│ │  # managing and loading configuration settings   
 │ ├── handlers \  
 │ │  # Handlers package initialization \  
 │ │  # Handle bot commands \  
