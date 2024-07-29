@@ -1,12 +1,18 @@
 import os
-
 from telegram import Update
 from telegram.ext import ContextTypes
 import requests
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
 
+# Initialize the logger
+logger = logging.getLogger(__name__)
+
+def generate_request_id():
+    import uuid
+    return str(uuid.uuid4())
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Hello! I am your bot. How can I help you?')
@@ -21,6 +27,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/api - connect to server"
     )
     await update.message.reply_text(help_text)
+    logger.info("Displayed help message", extra={"req_id": generate_request_id()})
 
 
 async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
