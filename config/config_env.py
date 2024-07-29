@@ -8,9 +8,11 @@ def create_config_env(env_name):
         if env_name in ['dev', 'prod']:
             env_file = f'.env_{env_name}'
             suffix = env_name.upper()
-            load_dotenv(env_file)
-            bot_token = os.getenv(f'BOT_TOKEN_{suffix}')
-            server_url = os.getenv(f'SERVER_URL_{suffix}')
+            if load_dotenv(env_file):
+               bot_token = os.getenv(f'BOT_TOKEN_{suffix}')
+               server_url = os.getenv(f'SERVER_URL_{suffix}')
+            else:
+                raise FileNotFoundError(f"Error: Ensure that the .env_dev or .env_prod file exists.")
         else:
             raise ValueError(f"Unknown environment: {env_name}")
 
@@ -22,8 +24,9 @@ def create_config_env(env_name):
             f.write(f"SERVER_URL={server_url}\n")
 
     except FileNotFoundError as fnf_error:
-        print(f"Error: {fnf_error}. Ensure that the .env_dev or .env_prod file exists.")
+        raise fnf_error
     except ValueError as val_error:
-        print(f"Error: {val_error}")
+        raise val_error
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        raise e
+

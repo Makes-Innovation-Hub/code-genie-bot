@@ -14,6 +14,7 @@ def setup_and_load_env():
         create_config_env(args.env)
     except Exception as e:
         raise e
+        exit(1)
 
 
 def main():
