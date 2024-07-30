@@ -7,10 +7,15 @@ def create_config_env(env_name):
     try:
         if env_name in ['dev', 'prod']:
             env_file = f'.env_{env_name}'
+            print('env_file: ', env_file)
             suffix = env_name.upper()
             if load_dotenv(env_file):
-               bot_token = os.getenv(f'BOT_TOKEN_{suffix}')
-               server_url = os.getenv(f'SERVER_URL_{suffix}')
+                try:
+                    bot_token = os.getenv(f'BOT_TOKEN_{suffix}')
+                    server_url = os.getenv(f'SERVER_URL_{suffix}')
+                except Exception as e:
+                    print(e)
+                    raise KeyError(f"error in loading env vars: {e}")
             else:
                 raise FileNotFoundError(f"Error: Ensure that the .env_dev or .env_prod file exists.")
         else:
