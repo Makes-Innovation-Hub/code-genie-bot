@@ -1,11 +1,12 @@
 import os
+import sys
 from telegram import Update
 from telegram.ext import ContextTypes
 import requests
 from dotenv import load_dotenv
 import logging
 
-load_dotenv()
+load_dotenv('.env')
 
 # Initialize the logger
 logger = logging.getLogger(__name__)
