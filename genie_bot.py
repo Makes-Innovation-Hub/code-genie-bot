@@ -1,13 +1,27 @@
+import argparse
+from config.config_env import create_config_env
 from handlers.handlers import *
 from telegram.ext import ApplicationBuilder, CommandHandler
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+
+def setup_and_load_env():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('env', choices=['dev', 'prod'], nargs='?', default='dev')
+    args = parser.parse_args()
+    try:
+        create_config_env(args.env)
+    except Exception as e:
+        raise e
+        exit(1)
+
 
 def main():
+    setup_and_load_env()
+    load_dotenv('.env')
     # Create the Application and pass it your bot's token.
-    application = ApplicationBuilder().token(os.getenv('BOT_TOKEN')).build()
+    application = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
 
     # Register the /start command handler
     application.add_handler(CommandHandler("start", start_command))

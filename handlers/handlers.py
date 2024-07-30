@@ -1,12 +1,12 @@
 import os
+import sys
 
 from telegram import Update
 from telegram.ext import ContextTypes
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()
-
+load_dotenv('.env')
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Hello! I am your bot. How can I help you?')
