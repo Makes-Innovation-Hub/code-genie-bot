@@ -27,7 +27,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(help_text)
 
 
-async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     try:
         response = requests.get('https://api.ipify.org?format=json')
         public_ip = response.json()['ip']
@@ -39,7 +39,7 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
     
 async def question_command(update: Update, context: CallbackContext) -> None:
     try:
-        response = requests.post(f'{SERVER_URL}/questions/generate-question/')
+        response = requests.post(f'{SERVER_URL}/question/generate/')
         await update.message.reply_text(f"Server response: {response.json()}")
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
