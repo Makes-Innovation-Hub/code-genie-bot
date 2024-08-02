@@ -1,13 +1,8 @@
 import os
-from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import  ContextTypes, CallbackContext
 import requests
-from dotenv import load_dotenv
 from config import CONSTANTS
-
-load_dotenv()
-
 
 SERVER_URL = os.getenv("SERVER_URL")
 
