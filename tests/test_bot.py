@@ -6,6 +6,7 @@ from telegram import Update, Message
 from telegram.ext import ContextTypes
 from genie_bot import *
 import statistics
+from config import CONSTANTS
 
 @pytest.mark.asyncio
 async def test_start_command():
@@ -27,14 +28,7 @@ async def test_help_command():
 
     await help_command(update, context)
 
-    help_text = (
-        "Available commands:\n"
-        "/start - Start the bot\n"
-        "/help - Show this help message\n"
-        "/ip -  get public ip\n"
-        "/api - connect to server"
-    )
-    update.message.reply_text.assert_called_once_with(help_text)
+    update.message.reply_text.assert_called_once_with(CONSTANTS.HELP_COMMAND_TEXT)
 
 @pytest.mark.asyncio
 async def test_get_public_ip_command_success():
@@ -77,41 +71,53 @@ async def test_get_public_ip_command_failure():
         assert result is False
 
 @patch('requests.post')
-def test_question_command_success(mock_post, mock_update, mock_context):
+async def test_question_command_success():
     mock_response = MagicMock()
     mock_response.json.return_value = {"response": "Here is your coding question."}
-    mock_post.return_value = mock_response
-
-    question_command(mock_update, mock_context)
+    mock_update = AsyncMock(Update)
+    mock_context = AsyncMock(ContextTypes.DEFAULT_TYPE)
+    message = AsyncMock(Message)
+    
+    mock_update.message = message
+    await question_command(mock_update, mock_context)
     mock_update.message.reply_text.assert_called_with("Server response: Here is your coding question.")
 
 @patch('requests.post')
-def test_question_command_failure(mock_post, mock_update, mock_context):
-    mock_post.side_effect = requests.exceptions.RequestException("Network error")
-
-    question_command(mock_update, mock_context)
-    mock_update.message.reply_text.assert_called_with("An error occurred: Network error")
-
-@patch('requests.post')
-def test_question_command_latency(mock_post, mock_update, mock_context):
+async def test_question_command_failure():
     mock_response = MagicMock()
     mock_response.json.return_value = {"response": "Here is your coding question."}
-    mock_post.return_value = mock_response
+    mock_update = AsyncMock(Update)
+    mock_context = AsyncMock(ContextTypes.DEFAULT_TYPE)
+    
+    with patch('genie_bot.requests.post') as mock_post:
+        mock_post.side_effect = requests.exceptions.RequestException("Network error")
+        await question_command(mock_update, mock_context)
+        mock_update.message.reply_text.assert_called_with("An error occurred: Network error")
 
-    latencies = []
-    num_tests = 10
+@patch('requests.post')
+async def test_question_command_latency():
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"response": "Here is your coding question."}
+    mock_update = AsyncMock(Update)
+    mock_context = AsyncMock(ContextTypes.DEFAULT_TYPE)
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"response": "Here is your coding question."}
+    with patch('genie_bot.requests.post') as mock_post:
+        mock_post.return_value = mock_response
+        latencies = []
+        num_tests = 10
 
-    for _ in range(num_tests):
-        start_time = time.time()
-        question_command(mock_update, mock_context)
-        end_time = time.time()
-        latencies.append(end_time - start_time)
+        for _ in range(num_tests):
+            start_time = time.time()
+            await question_command(mock_update, mock_context)
+            end_time = time.time()
+            latencies.append(end_time - start_time)
 
-    average_latency = statistics.mean(latencies)
-    print(f"Average latency: {average_latency:.4f} seconds")
+        average_latency = statistics.mean(latencies)
+        print(f"Average latency: {average_latency:.4f} seconds")
 
-    assert average_latency > 0  # Ensure latency is measured
-    mock_update.message.reply_text.assert_called_with("Server response: Here is your coding question.")
+        assert average_latency > 0  # Ensure latency is measured
+        mock_update.message.reply_text.assert_called_with("Server response: Here is your coding question.")
 
 @pytest.mark.asyncio
 async def test_api_command_success():

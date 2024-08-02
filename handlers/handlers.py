@@ -4,6 +4,7 @@ from telegram import Update
 from telegram.ext import  ContextTypes, CallbackContext
 import requests
 from dotenv import load_dotenv
+from config import CONSTANTS
 
 load_dotenv()
 
@@ -15,16 +16,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    help_text = (
-        "Available commands:\n"
-        "/start - Start the bot\n"
-        "/help - Show this help message\n"
-        "/ip -  Get public ip\n"
-        "/question - Get a question from the server\n "
-        "/ip -  get public ip\n"
-        "/api - connect to server"
-    )
-    await update.message.reply_text(help_text)
+    await update.message.reply_text(CONSTANTS.HELP_COMMAND_TEXT)
 
 
 async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
