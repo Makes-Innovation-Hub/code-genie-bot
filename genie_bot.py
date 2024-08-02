@@ -14,25 +14,27 @@ def setup_and_load_env():
         create_config_env(args.env)
     except Exception as e:
         raise e
-        exit(1)
 
 
 def main():
-    setup_and_load_env()
-    load_dotenv('.env')
-    # Create the Application and pass it your bot's token.
-    application = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
+    try:
+        setup_and_load_env()
+        load_dotenv('.env')
+        # Create the Application and pass it your bot's token.
+        application = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
 
-    # Register the /start command handler
-    application.add_handler(CommandHandler("start", start_command))
-    # Register the /help command handler
-    application.add_handler(CommandHandler("help", help_command))
-    # Register the /ip command handler
-    application.add_handler(CommandHandler("ip", get_public_ip_command))
-    # Register the /api command handler
-    application.add_handler(CommandHandler('api', api_command))
-    # Start the Bot
-    application.run_polling()
+        # Register command handlers
+        application.add_handler(CommandHandler("start", start_command))
+        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CommandHandler("ip", get_public_ip_command))
+        application.add_handler(CommandHandler('question', question_command))
+        application.add_handler(CommandHandler('api', api_command))
 
+        # Start the Bot
+        application.run_polling()
+    except Exception as e:
+        print('e: ', e)
+        exit(1)
+        
 if __name__ == '__main__':
     main()
