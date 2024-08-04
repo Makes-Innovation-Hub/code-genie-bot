@@ -14,6 +14,10 @@ def setup_and_load_env():
         create_config_env(args.env)
     except Exception as e:
         raise e
+        exit(1)
+
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -21,7 +25,13 @@ def main():
         setup_and_load_env()
         load_dotenv('.env')
         # Create the Application and pass it your bot's token.
-        application = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
+        bot_token = os.getenv('BOT_TOKEN')
+        if not bot_token:
+            logger.error("BOT_TOKEN is not set")
+            return
+
+        # Create the Application and pass it your bot's token.
+        application = ApplicationBuilder().token(bot_token).build()
 
         # Register command handlers
         application.add_handler(CommandHandler("start", start_command))
@@ -31,10 +41,12 @@ def main():
         application.add_handler(CommandHandler('api', api_command))
 
         # Start the Bot
+        logger.info("Starting bot", extra={"req_id": generate_request_id()})
         application.run_polling()
     except Exception as e:
         print('e: ', e)
         exit(1)
-        
+
+
 if __name__ == '__main__':
     main()
