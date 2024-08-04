@@ -17,6 +17,9 @@ def setup_and_load_env():
         exit(1)
 
 
+logger = logging.getLogger(__name__)
+
+
 def main():
     try:
         setup_and_load_env()
@@ -27,7 +30,7 @@ def main():
             logger.error("BOT_TOKEN is not set")
             return
 
-         # Create the Application and pass it your bot's token.
+        # Create the Application and pass it your bot's token.
         application = ApplicationBuilder().token(bot_token).build()
 
         # Register command handlers
@@ -43,6 +46,7 @@ def main():
     except Exception as e:
         print('e: ', e)
         exit(1)
+
 
 if __name__ == '__main__':
     main()
