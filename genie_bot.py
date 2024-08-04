@@ -4,7 +4,6 @@ from handlers.handlers import *
 from telegram.ext import ApplicationBuilder, CommandHandler
 import os
 from dotenv import load_dotenv
-from config.logging_config import logging, generate_request_id
 
 
 def setup_and_load_env():
@@ -17,9 +16,6 @@ def setup_and_load_env():
         raise e
         exit(1)
 
-
-# Initialize the logger
-logger = logging.getLogger(__name__)
 
 def main():
     try:

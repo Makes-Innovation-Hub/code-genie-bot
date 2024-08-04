@@ -1,20 +1,15 @@
 import os
 import sys
-
 from telegram import Update
 from telegram.ext import ContextTypes, CallbackContext
 import requests
-from dotenv import load_dotenv
 import logging
+from config.logging_config import logging, generate_request_id
 from config import CONSTANTS
-
 
 # Initialize the logger
 logger = logging.getLogger(__name__)
 
-def generate_request_id():
-    import uuid
-    return str(uuid.uuid4())
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info("This is start command", extra={"req_id": generate_request_id()})
