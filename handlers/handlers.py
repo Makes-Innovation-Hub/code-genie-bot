@@ -1,12 +1,14 @@
 import os
 import sys
+
 from telegram import Update
 from telegram.ext import ContextTypes
 import requests
 from dotenv import load_dotenv
 import logging
+from config import CONSTANTS
 
-load_dotenv('.env')
+SERVER_URL = os.getenv("SERVER_URL")
 
 # Initialize the logger
 logger = logging.getLogger(__name__)
@@ -20,18 +22,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    help_text = (
-        "Available commands:\n"
-        "/start - Start the bot\n"
-        "/help - Show this help message\n"
-        "/ip -  get public ip\n"
-        "/api - connect to server"
-    )
-    await update.message.reply_text(help_text)
+    await update.message.reply_text(CONSTANTS.HELP_COMMAND_TEXT)
     logger.info("Displayed help message", extra={"req_id": generate_request_id()})
 
 
-async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     try:
         response = requests.get('https://api.ipify.org?format=json')
         public_ip = response.json()['ip']
@@ -40,6 +35,13 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
     except requests.RequestException as e:
         await update.message.reply_text(f'Failed to get public IP address: {e}')
         return False
+
+async def question_command(update: Update, context: CallbackContext) -> None:
+    try:
+        response = requests.post(f'{SERVER_URL}/question/generate/')
+        await update.message.reply_text(f"Server response: {response.json()}")
+    except requests.exceptions.RequestException as e:
+        await update.message.reply_text(f"An error occurred: {e}")
 
 
 async def api_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
