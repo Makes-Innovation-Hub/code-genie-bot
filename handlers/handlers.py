@@ -4,8 +4,7 @@ from telegram.ext import  ContextTypes, CallbackContext
 import requests
 from config import CONSTANTS
 
-SERVER_URL = os.getenv("SERVER_URL")
-
+ 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Hello! I am your bot. How can I help you?')
 
@@ -26,8 +25,26 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
     
 async def question_command(update: Update, context: CallbackContext) -> None:
     try:
-        response = requests.post(f'{SERVER_URL}/question/generate/')
-        await update.message.reply_text(f"Server response: {response.json()}")
+        data = {
+            "topic": "python",
+            "difficulty": "easy",
+            "answers_num": 0
+        }
+        # Define headers, if required
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(
+            f'{os.getenv("SERVER_URL")}/question/generate',
+            json=data,
+            headers=headers
+        )
+        response_data = response.json()
+        question = response_data.get('Question', 'No question found')
+        print(question)
+        to_return = question
+        await update.message.reply_text(f"Server response: {to_return}")
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
 
