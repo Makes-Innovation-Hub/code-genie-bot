@@ -42,9 +42,8 @@ async def question_command(update: Update, context: CallbackContext) -> None:
         )
         response_data = response.json()
         question = response_data.get('Question', 'No question found')
-        print(question)
         to_return = question
-        await update.message.reply_text(f"Server response: {to_return}")
+        await update.message.reply_text(f"{to_return}")
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
 
