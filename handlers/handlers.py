@@ -44,7 +44,6 @@ async def question_command(update: Update, context: CallbackContext) -> None:
         question = response_data.get('Question', 'No question found')
         to_return = question
         answer = response_data.get('Answer')
-
         await update.message.reply_text(f"{to_return}")
         context.user_data['correct_answer'] = answer
         context.user_data['explanations'] = response_data.get('Explanations')
@@ -53,6 +52,7 @@ async def question_command(update: Update, context: CallbackContext) -> None:
             MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_response)
         )
         
+
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
 
