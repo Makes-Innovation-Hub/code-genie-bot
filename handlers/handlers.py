@@ -1,11 +1,10 @@
 import os
 from telegram import Update
-from telegram.ext import  ContextTypes, CallbackContext
+from telegram.ext import  ContextTypes, CallbackContext, MessageHandler, filters
 import requests
 from config import CONSTANTS
 
-SERVER_URL = os.getenv("SERVER_URL")
-
+ 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Hello! I am your bot. How can I help you?')
 
@@ -26,10 +25,52 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
     
 async def question_command(update: Update, context: CallbackContext) -> None:
     try:
-        response = requests.post(f'{SERVER_URL}/question/generate/')
-        await update.message.reply_text(f"Server response: {response.json()}")
+        data = {
+            "topic": "python",
+            "difficulty": "easy",
+            "answers_num": 0
+        }
+        # Define headers, if required
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(
+            f'{os.getenv("SERVER_URL")}/question/generate',
+            json=data,
+            headers=headers
+        )
+        response_data = response.json()
+        question = response_data.get('Question', 'No question found')
+        to_return = question
+        answer = response_data.get('Answer')
+
+        await update.message.reply_text(f"{to_return}")
+        context.user_data['correct_answer'] = answer
+        context.user_data['explanations'] = response_data.get('Explanations')
+
+        context.application.add_handler(
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_response)
+        )
+        
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
+
+#this function is a message handler that waits for the user response and return the answer and the explanation
+async def handle_user_response(update, context):
+    user_answer = update.message.text
+    correct_answer = context.user_data.get('correct_answer')
+    explanations = context.user_data.get('explanations')
+    correct_answer = correct_answer[0]
+    explanations = explanations[0]
+    await update.message.reply_text(f" the correct answer is: {correct_answer}")
+    await update.message.reply_text(f"Explanation: {explanations}")
+    context.application.remove_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_response)
+    )
+
+
+
 
 
 async def api_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
