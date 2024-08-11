@@ -1,9 +1,9 @@
 import os
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import  ContextTypes, CallbackContext
 import requests
 from config import CONSTANTS
-
+from handlers.helper_functions import *
  
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Hello! I am your bot. How can I help you?')
@@ -28,7 +28,7 @@ async def question_command(update: Update, context: CallbackContext) -> None:
         data = {
             "topic": "python",
             "difficulty": "easy",
-            "answers_num": 0
+            "answers_num": 4
         }
         # Define headers, if required
         headers = {
@@ -41,9 +41,10 @@ async def question_command(update: Update, context: CallbackContext) -> None:
             headers=headers
         )
         response_data = response.json()
-        question = response_data.get('Question', 'No question found')
-        to_return = question
-        await update.message.reply_text(f"{to_return}")
+        # question = response_data.get('Question', 'No question found')
+        # answers = response_data.get('Answer', 'There is no options')
+        to_return = style_questions_answers(response_data)
+        await update.message.reply_text(f"{to_return[0]}")
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
 
