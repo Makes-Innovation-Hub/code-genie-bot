@@ -1,4 +1,5 @@
 import os
+import random
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
 import requests
@@ -40,7 +41,7 @@ async def handle_diff(update: Update, context: CallbackContext):
         await update.message.reply_text(
             f"Invalid difficulty, please make sure to choose from following options {DIFFICULTY_LIST}")
         return ASK_FOR_DIFF
-    context.user_data['difficulty'] = diff
+    context.user_data['difficulty'] = diff if diff != 'none' else random.choice(DIFFICULTY_LIST[1:])
     await update.message.reply_text("Please provide the number of answers (FROM 1-4):",
                                     reply_markup=get_num_ans_keyboard())
     return ASK_FOR_NUM_ANS
@@ -58,9 +59,9 @@ async def handle_num_ans(update: Update, context: CallbackContext):
 
 
 async def handle_user_answer(update: Update, context: CallbackContext):
-    user_ans = update.message.text
-    context.user_data['user_ans'] = user_ans
     if context.user_data['num_ans'] == 1:
+        user_ans = update.message.text
+        context.user_data['user_ans'] = user_ans
         await evaluate_handler(update, context)
     else:
         await button(update, context)
@@ -110,7 +111,8 @@ async def evaluate_handler(update: Update, context: CallbackContext):
                 'question_text': context.user_data['response_data']['Question'],
                 'difficulty': context.user_data['difficulty'],
                 'topic': context.user_data['topic'],
-                'answer': context.user_data['user_ans']}
+                'answer': context.user_data['user_ans']
+        }
 
         headers = {
             "accept": "application/json",
@@ -120,7 +122,7 @@ async def evaluate_handler(update: Update, context: CallbackContext):
         response = requests.post(
             f'{os.getenv("SERVER_URL")}/question/evaluate',
             json=body,
-            headers=headers
+            headers=headers, params={'ai_answer': context.user_data['response_data']['Answer'][0]}
         )
         evaluation_data = response.json()
         context.user_data['evaluation_score'] = evaluation_data['Score']
@@ -157,4 +159,21 @@ async def button(update: Update, context: CallbackContext):
 
     await query.edit_message_text(
         text=f"Selected option: {response_data['Answer'][int(selected_answer)]}\n\n{feedback_with_explanation}")
+    try:
+        answer_correct = selected_answer == correct_answer
+        body = {'user_id': str(update.effective_user.id),
+                'question_text': context.user_data['response_data']['Question'],
+                'topic': context.user_data['topic'],
+                'difficulty': context.user_data['difficulty'],
+                'answer_correct': answer_correct,
+                'score': 10 if answer_correct else 0,
+                'answer': response_data['Answer'][int(selected_answer)],
+                }
+
+        response = requests.post(
+            f'{os.getenv("SERVER_URL")}/users/add-user-stats',
+            data=body
+        )
+    except requests.exceptions.RequestException as e:
+        await update.message.reply_text(f"An error occurred: {e}")
     return ConversationHandler.END

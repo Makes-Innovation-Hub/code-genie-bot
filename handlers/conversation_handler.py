@@ -15,6 +15,6 @@ def conversation_handler_question():
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel_conversation)],
-        per_message=False  # You can set this to True if you want to track handlers for every message
+        per_message=False
     )
     return conv_handler
