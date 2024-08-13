@@ -1,9 +1,65 @@
 import os
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import  ContextTypes, CallbackContext
+from handlers.helper_functions import *
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
+from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
 import requests
 from config import CONSTANTS
-from handlers.helper_functions import *
+from config.CONSTANTS import DIFFICULTY_LIST
+
+ASK_FOR_TOPIC, ASK_FOR_DIFF, ASK_FOR_NUM_ANS = range(3)
+
+
+def get_diff_keyboard():
+    buttons = [KeyboardButton(diff) for diff in DIFFICULTY_LIST]
+    return ReplyKeyboardMarkup(([[buttons[0], buttons[1]], [buttons[2], buttons[3]], [buttons[4]]]), resize_keyboard=True,
+                               one_time_keyboard=True)
+
+
+def get_num_ans_keyboard():
+    buttons = [str(i) for i in range(1, 5)]
+    return ReplyKeyboardMarkup(([[buttons[0], buttons[1]], [buttons[2], buttons[3]]]), resize_keyboard=True,
+                               one_time_keyboard=True)
+
+
+async def start_conversation(update: Update, context: CallbackContext):
+    await update.message.reply_text("Please provide a topic for the question:")
+    return ASK_FOR_TOPIC
+
+
+async def handle_topic(update: Update, context: CallbackContext):
+    topic = update.message.text
+    context.user_data['topic'] = topic
+    await update.message.reply_text(f"Please provide a difficulty from following options {DIFFICULTY_LIST}:",
+                                    reply_markup=get_diff_keyboard())
+    return ASK_FOR_DIFF
+
+
+async def handle_diff(update: Update, context: CallbackContext):
+    diff = update.message.text
+    if diff not in DIFFICULTY_LIST:
+        await update.message.reply_text(
+            f"Invalid difficulty, please make sure to choose from following options {DIFFICULTY_LIST}")
+        return ASK_FOR_DIFF
+    context.user_data['difficulty'] = diff
+    await update.message.reply_text("Please provide the number of answers (FROM 1-4):",
+                                    reply_markup=get_num_ans_keyboard())
+    return ASK_FOR_NUM_ANS
+
+
+async def handle_num_ans(update: Update, context: CallbackContext):
+    num_ans = update.message.text
+    if not num_ans.isdigit() or int(num_ans) <= 0 or int(num_ans) > 4:
+        await update.message.reply_text(
+            f"Invalid number of answers, please make sure to choose a number from 1-4:")
+        return ASK_FOR_NUM_ANS
+    context.user_data['num_ans'] = int(num_ans)
+    await question_command(update, context)
+    return ConversationHandler.END
+
+
+async def cancel_conversation(update: Update, context: CallbackContext):
+    await update.message.reply_text("Conversation canceled.")
+    return ConversationHandler.END
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -28,9 +84,9 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
 async def question_command(update: Update, context: CallbackContext) -> None:
     try:
         data = {
-            "topic": "python",
-            "difficulty": "easy",
-            "answers_num": 3
+            "topic": context.user_data['topic'],
+            "difficulty": context.user_data['difficulty'],
+            "answers_num": context.user_data['num_ans']
         }
         # Define headers, if required
         headers = {
@@ -42,20 +98,18 @@ async def question_command(update: Update, context: CallbackContext) -> None:
             json=data,
             headers=headers
         )
-        response_data = response.json()
-        while(data["answers_num"] != len(response_data.get('Answer', 'There is no options'))):
-            response = requests.post(
-                f'{os.getenv("SERVER_URL")}/question/generate',
-                json=data,
-                headers=headers
-            )   
+        response_data = response.json() 
         context.user_data['response_data'] = response_data
         to_return = style_questions_answers(response_data)
         reply_markup = InlineKeyboardMarkup(to_return[2])
         await update.message.reply_text(f"{to_return[0]}")
-        await update.message.reply_text(f"{to_return[1]}", parse_mode='HTML', reply_markup=reply_markup)
+        try:
+            await update.message.reply_text(f"{to_return[1]}", parse_mode='HTML', reply_markup=reply_markup)
+        except Exception as e:
+            await update.message.reply_text(f"An error occurred****: {e}")
     except requests.exceptions.RequestException as e:
-        await update.message.reply_text(f"An error occurred: {e}")
+        await update.message.reply_text(f"An error occurred--: {e}")
+
 
 
 async def api_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -82,17 +136,18 @@ async def button(update: Update, context: CallbackContext) -> None:
         return
 
     # Check if the selected answer is correct
-    correct_answer = response_data['Answer'][0]  # Assuming the first answer is the correct one
+    correct_answer = '0'  # Assuming the first answer is the correct one
     selected_answer = query.data
     explanation = response_data.get('Explanations', 'No explanation available.')
 
     if selected_answer == correct_answer:
         feedback = "Correct! 🎉"
     else:
-        feedback = f"Incorrect. The correct answer was: {correct_answer}"
+        feedback = f"Incorrect. The correct answer was: {response_data['Answer'][0]}"
 
     # Include the explanation in the feedback
     feedback_with_explanation = f"{feedback}\n\nExplanation: {explanation[0]}"
 
-    await query.edit_message_text(text=f"Selected option: {selected_answer}\n\n{feedback_with_explanation}")
+    await query.edit_message_text(text=f"Selected option: {response_data['Answer'][int(selected_answer)]}\n\n{feedback_with_explanation}")
+    return
 
