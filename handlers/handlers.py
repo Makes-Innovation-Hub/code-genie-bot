@@ -28,9 +28,9 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
 async def question_command(update: Update, context: CallbackContext) -> None:
     try:
         data = {
-            "topic": "vs code",
+            "topic": "python",
             "difficulty": "easy",
-            "answers_num": 4
+            "answers_num": 3
         }
         # Define headers, if required
         headers = {
@@ -43,6 +43,12 @@ async def question_command(update: Update, context: CallbackContext) -> None:
             headers=headers
         )
         response_data = response.json()
+        while(data["answers_num"] != len(response_data.get('Answer', 'There is no options'))):
+            response = requests.post(
+                f'{os.getenv("SERVER_URL")}/question/generate',
+                json=data,
+                headers=headers
+            )   
         context.user_data['response_data'] = response_data
         to_return = style_questions_answers(response_data)
         reply_markup = InlineKeyboardMarkup(to_return[2])
@@ -86,7 +92,7 @@ async def button(update: Update, context: CallbackContext) -> None:
         feedback = f"Incorrect. The correct answer was: {correct_answer}"
 
     # Include the explanation in the feedback
-    feedback_with_explanation = f"{feedback}\n\nExplanation: {explanation}"
+    feedback_with_explanation = f"{feedback}\n\nExplanation: {explanation[0]}"
 
     await query.edit_message_text(text=f"Selected option: {selected_answer}\n\n{feedback_with_explanation}")
 
