@@ -7,4 +7,4 @@ HELP_COMMAND_TEXT = (
     "/api - connect to server"
 )
 
-DIFFICULTY_LIST = ["none", "easy", "medium", "hard", "very hard"]
+DIFFICULTY_LIST = ["easy", "medium", "hard", "very hard"]
