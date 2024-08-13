@@ -1,5 +1,6 @@
 import os
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
+from handlers.helper_functions import *
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
 import requests
 from config import CONSTANTS
@@ -53,6 +54,7 @@ async def handle_num_ans(update: Update, context: CallbackContext):
         return ASK_FOR_NUM_ANS
     context.user_data['num_ans'] = int(num_ans)
     await question_command(update, context)
+    return ConversationHandler.END
 
 
 async def cancel_conversation(update: Update, context: CallbackContext):
@@ -96,12 +98,18 @@ async def question_command(update: Update, context: CallbackContext) -> None:
             json=data,
             headers=headers
         )
-        response_data = response.json()
-        question = response_data.get('Question', 'No question found')
-        to_return = question
-        await update.message.reply_text(f"{to_return}")
+        response_data = response.json() 
+        context.user_data['response_data'] = response_data
+        to_return = style_questions_answers(response_data)
+        reply_markup = InlineKeyboardMarkup(to_return[2])
+        await update.message.reply_text(f"{to_return[0]}")
+        try:
+            await update.message.reply_text(f"{to_return[1]}", parse_mode='HTML', reply_markup=reply_markup)
+        except Exception as e:
+            await update.message.reply_text(f"An error occurred: {e}")
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
+
 
 
 async def api_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -114,3 +122,32 @@ async def api_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Request failed: {str(e)}")
     except Exception as e:
         await update.message.reply_text(f"An unexpected error occurred: {str(e)}")
+
+
+async def button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    # Retrieve the response_data stored in question_command
+    response_data = context.user_data.get('response_data')
+
+    if not response_data:
+        await query.edit_message_text(text="Error: No data found for this question.")
+        return
+
+    # Check if the selected answer is correct
+    correct_answer = '0'  # Assuming the first answer is the correct one
+    selected_answer = query.data
+    explanation = response_data.get('Explanations', 'No explanation available.')
+
+    if selected_answer == correct_answer:
+        feedback = "Correct! 🎉"
+    else:
+        feedback = f"Incorrect. The correct answer was: {response_data['Answer'][0]}"
+
+    # Include the explanation in the feedback
+    feedback_with_explanation = f"{feedback}\n\nExplanation: {explanation[0]}"
+
+    await query.edit_message_text(text=f"Selected option: {response_data['Answer'][int(selected_answer)]}\n\n{feedback_with_explanation}")
+    return
+
