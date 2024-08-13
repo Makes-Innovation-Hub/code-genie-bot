@@ -1,7 +1,7 @@
 import argparse
 from config.config_env import create_config_env
-from handlers.conversation import conversation_handler_question
-from handlers.handlers import *
+from handlers.conversation_handler import conversation_handler_question
+from handlers.basic_handlers import *
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 import os
 from dotenv import load_dotenv
