@@ -64,7 +64,7 @@ async def handle_user_answer(update: Update, context: CallbackContext):
         context.user_data['user_ans'] = user_ans
         await evaluate_handler(update, context)
     else:
-        await button(update, context)
+        await closed_question_handler(update, context)
     return ConversationHandler.END
 
 
@@ -133,7 +133,7 @@ async def evaluate_handler(update: Update, context: CallbackContext):
         await update.message.reply_text(f"An error occurred: {e}")
 
 
-async def button(update: Update, context: CallbackContext):
+async def closed_question_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
 

@@ -11,7 +11,7 @@ def conversation_handler_question():
             ASK_FOR_NUM_ANS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_num_ans)],
             USER_ANSWER: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_answer),
-                CallbackQueryHandler(button)
+                CallbackQueryHandler(closed_question_handler)
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel_conversation)],

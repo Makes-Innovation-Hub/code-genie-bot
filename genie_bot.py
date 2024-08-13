@@ -6,8 +6,6 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 import os
 from dotenv import load_dotenv
 
-from handlers.question_handler import button
-
 
 def setup_and_load_env():
     parser = argparse.ArgumentParser()
