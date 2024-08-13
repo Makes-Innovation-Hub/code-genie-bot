@@ -26,7 +26,7 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
 async def question_command(update: Update, context: CallbackContext) -> None:
     try:
         data = {
-            "topic": "python",
+            "topic": "vs code",
             "difficulty": "easy",
             "answers_num": 4
         }
@@ -43,7 +43,8 @@ async def question_command(update: Update, context: CallbackContext) -> None:
         response_data = response.json()
         to_return = style_questions_answers(response_data)
         reply_markup = InlineKeyboardMarkup(to_return[2])
-        await update.message.reply_text(f"{to_return[0]} \n\n<b>Options:</b>\n {to_return[1]}", parse_mode='HTML', reply_markup=reply_markup)
+        await update.message.reply_text(f"{to_return[0]}")
+        await update.message.reply_text(f"{to_return[1]}", parse_mode='HTML', reply_markup=reply_markup)
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
 

@@ -1,3 +1,4 @@
+import random
 from telegram import InlineKeyboardButton
 
 def switch_case(answers):
@@ -32,17 +33,16 @@ def switch_case(answers):
                     [InlineKeyboardButton('3', callback_data=answers[2]),
                     InlineKeyboardButton('4', callback_data=answers[3])],
                 ]
-    else:
-        return "Unknown"
+
 
 def style_questions_answers(response_data):
     question = response_data.get('Question', 'No question found')
-    answers = response_data.get('Answer', 'There is no options')
+    answers = response_data.get('Answer', 'There is no options').copy()
+    random.shuffle(answers)
     keyboard = []
     options = ""
-    if len(answers) <= 1:
-        options += 'There is no options'
-    else:
+    if len(answers) > 1:
+        options = "<b>Options:</b>\n"
         keyboard = switch_case(answers)
         answers_lengths = [len(answer) for answer in answers]
         if max(answers_lengths) > 24:
