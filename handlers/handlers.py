@@ -106,9 +106,9 @@ async def question_command(update: Update, context: CallbackContext) -> None:
         try:
             await update.message.reply_text(f"{to_return[1]}", parse_mode='HTML', reply_markup=reply_markup)
         except Exception as e:
-            await update.message.reply_text(f"An error occurred****: {e}")
+            await update.message.reply_text(f"An error occurred: {e}")
     except requests.exceptions.RequestException as e:
-        await update.message.reply_text(f"An error occurred--: {e}")
+        await update.message.reply_text(f"An error occurred: {e}")
 
 
 
