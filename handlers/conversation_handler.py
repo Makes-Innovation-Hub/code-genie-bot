@@ -1,4 +1,4 @@
-from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, filters
+from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from .question_handler import *
 
 
@@ -9,8 +9,12 @@ def conversation_handler_question():
             ASK_FOR_TOPIC: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_topic)],
             ASK_FOR_DIFF: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_diff)],
             ASK_FOR_NUM_ANS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_num_ans)],
-            USER_ANSWER: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_answer)]
+            USER_ANSWER: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_answer),
+                CallbackQueryHandler(button)
+            ],
         },
         fallbacks=[CommandHandler("cancel", cancel_conversation)],
+        per_message=False  # You can set this to True if you want to track handlers for every message
     )
     return conv_handler

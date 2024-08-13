@@ -1,8 +1,9 @@
 import os
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
 import requests
 from config.CONSTANTS import DIFFICULTY_LIST
+from handlers.helper_functions import style_questions_answers
 
 ASK_FOR_TOPIC, ASK_FOR_DIFF, ASK_FOR_NUM_ANS, USER_ANSWER = range(4)
 
@@ -61,6 +62,8 @@ async def handle_user_answer(update: Update, context: CallbackContext):
     context.user_data['user_ans'] = user_ans
     if context.user_data['num_ans'] == 1:
         await evaluate_handler(update, context)
+    else:
+        await button(update, context)
     return ConversationHandler.END
 
 
@@ -87,9 +90,16 @@ async def get_question_handler(update: Update, context: CallbackContext) -> None
             headers=headers
         )
         response_data = response.json()
+        context.user_data['response_data'] = response_data
         question = response_data.get('Question', 'No question found')
-        context.user_data['question_text'] = question
         await update.message.reply_text(f"{question}")
+        if context.user_data['num_ans'] > 1:
+            question_info = style_questions_answers(context.user_data['response_data'])
+            reply_markup = InlineKeyboardMarkup(question_info[2])
+            try:
+                await update.message.reply_text(f"{question_info[1]}", parse_mode='HTML', reply_markup=reply_markup)
+            except Exception as e:
+                await update.message.reply_text(f"An error occurred: {e}")
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
 
@@ -97,7 +107,7 @@ async def get_question_handler(update: Update, context: CallbackContext) -> None
 async def evaluate_handler(update: Update, context: CallbackContext):
     try:
         body = {'user_id': str(update.message.from_user.id),
-                'question_text': context.user_data['question_text'],
+                'question_text': context.user_data['response_data']['Question'],
                 'difficulty': context.user_data['difficulty'],
                 'topic': context.user_data['topic'],
                 'answer': context.user_data['user_ans']}
@@ -119,3 +129,32 @@ async def evaluate_handler(update: Update, context: CallbackContext):
         await update.message.reply_text(f"Here is the explanation : {evaluation_data['Explanation']}")
     except requests.exceptions.RequestException as e:
         await update.message.reply_text(f"An error occurred: {e}")
+
+
+async def button(update: Update, context: CallbackContext):
+    query = update.callback_query
+    await query.answer()
+
+    # Retrieve the response_data stored in question_command
+    response_data = context.user_data.get('response_data')
+
+    if not response_data:
+        await query.edit_message_text(text="Error: No data found for this question.")
+        return ConversationHandler.END
+
+    # Check if the selected answer is correct
+    correct_answer = '0'  # Assuming the first answer is the correct one
+    selected_answer = query.data
+    explanation = response_data.get('Explanations', 'No explanation available.')
+
+    if selected_answer == correct_answer:
+        feedback = "Correct! 🎉"
+    else:
+        feedback = f"Incorrect. The correct answer was: {response_data['Answer'][0]}"
+
+    # Include the explanation in the feedback
+    feedback_with_explanation = f"{feedback}\n\nExplanation: {explanation[0]}"
+
+    await query.edit_message_text(
+        text=f"Selected option: {response_data['Answer'][int(selected_answer)]}\n\n{feedback_with_explanation}")
+    return ConversationHandler.END
