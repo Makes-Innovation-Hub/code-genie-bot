@@ -47,6 +47,8 @@ Run command for genie_bot :
 
 # Testing
 
+**NOTE:** Make sure that the server is up and running.
+
 In order to run tests for the project you have to run the following commands:
 
 ```shell
