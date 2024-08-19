@@ -3,11 +3,12 @@ from handlers.helper_functions import *
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
 import requests
+from telethon import TelegramClient, events,functions,types
 from config import CONSTANTS
 from config.CONSTANTS import DIFFICULTY_LIST
 
 ASK_FOR_TOPIC, ASK_FOR_DIFF, ASK_FOR_NUM_ANS = range(3)
-
+ASK_FOR_API_HASH, ASK_FOR_PHONE_NUMBER, ASK_FOR_API_ID = range(3)
 
 def get_diff_keyboard():
     buttons = [KeyboardButton(diff) for diff in DIFFICULTY_LIST]
@@ -151,3 +152,38 @@ async def button(update: Update, context: CallbackContext) -> None:
     await query.edit_message_text(text=f"Selected option: {response_data['Answer'][int(selected_answer)]}\n\n{feedback_with_explanation}")
     return
 
+
+
+
+
+
+async def create_challenge(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text("Please provide your API_ID:")
+    return ASK_FOR_API_ID
+
+# api id handler
+def GET_API_ID(update: Update, context: CallbackContext) -> int:
+    context.user_data['API_ID'] = update.message.text
+    update.message.reply_text("Thanks! Now, what's your API_HASH?")
+    return ASK_FOR_API_HASH
+
+# api hash handler
+def GET_API_HASH(update: Update, context: CallbackContext) -> str:
+    context.user_data['API_HASH'] = update.message.text
+    update.message.reply_text("Great! Finally, which country are you from?")
+    return ASK_FOR_PHONE_NUMBER
+
+# phone number handler
+def GET_PHONE_NUMBER(update: Update, context: CallbackContext) -> str:
+    context.user_data['PHONE_NUMBER'] = update.message.text
+    user_data = context.user_data
+
+
+
+async def connect_to_telegram_API(update: Update, context: CallbackContext) -> None:
+        api_id= context.user_data['API_ID'],
+        api_hash= context.user_data['API_HASH'],
+        phone=  context.user_data['PHONE_NUMBER']
+        client = TelegramClient('user_session13', api_id, api_hash)
+        await client.start(phone)
+        await update.message.reply_text("hiiii from create!!!!!!!!!!!!!!!!!!!!!!!!!!")
