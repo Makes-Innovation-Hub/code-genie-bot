@@ -3,11 +3,12 @@ from handlers.helper_functions import *
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
 from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
 import requests
+from telethon import TelegramClient, events,functions,types
 from config import CONSTANTS
 from config.CONSTANTS import DIFFICULTY_LIST
 
 ASK_FOR_TOPIC, ASK_FOR_DIFF, ASK_FOR_NUM_ANS = range(3)
-
+ASK_FOR_API_HASH, ASK_FOR_PHONE_NUMBER, ASK_FOR_API_ID = range(3)
 
 def get_diff_keyboard():
     buttons = [KeyboardButton(diff) for diff in DIFFICULTY_LIST]
@@ -151,3 +152,43 @@ async def button(update: Update, context: CallbackContext) -> None:
     await query.edit_message_text(text=f"Selected option: {response_data['Answer'][int(selected_answer)]}\n\n{feedback_with_explanation}")
     return
 
+
+
+
+
+
+async def create_challenge(update: Update, context: CallbackContext) -> int:
+    await update.message.reply_text("Please provide your API_ID:")
+    return ASK_FOR_API_ID
+
+async def get_api_id(update: Update, context: CallbackContext) -> str:
+    context.user_data['API_ID'] = update.message.text
+    await update.message.reply_text("Thanks! Now, what's your API_HASH?")
+    return ASK_FOR_API_HASH
+
+async def get_api_hash(update: Update, context: CallbackContext) -> str:
+    context.user_data['API_HASH'] = update.message.text
+    await update.message.reply_text("Great! Finally, what is your phone number?")
+    return ASK_FOR_PHONE_NUMBER
+
+async def get_phone_number(update: Update, context: CallbackContext) -> str:
+    context.user_data['PHONE_NUMBER'] = update.message.text
+    user_data = context.user_data
+    await connect_to_telegram_API(update, context)
+    return ConversationHandler.END
+
+
+
+
+
+async def connect_to_telegram_API(update: Update, context: CallbackContext) -> None:
+        
+        api_id= int(context.user_data['API_ID'])
+        api_hash= context.user_data['API_HASH']
+        phone=  context.user_data['PHONE_NUMBER']
+        try:
+            client = TelegramClient('user_session13', str(api_id), str(api_hash))
+            await client.start(phone)
+            await update.message.reply_text("hi you are now connected to telegram api")
+        except Exception as e:
+            await update.message.reply_text(f"An unexpected error occurred: {str(e)}")
