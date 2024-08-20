@@ -171,7 +171,7 @@ async def closed_question_handler(update: Update, context: CallbackContext):
                 }
 
         response = requests.post(
-            f'{os.getenv("SERVER_URL")}/users/add-user-stats',
+            f'{os.getenv("SERVER_URL")}/users/add-user-stats/',
             data=body
         )
     except requests.exceptions.RequestException as e:
