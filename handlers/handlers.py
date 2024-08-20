@@ -6,6 +6,9 @@ import requests
 from telethon import TelegramClient, events,functions,types
 from config import CONSTANTS
 from config.CONSTANTS import DIFFICULTY_LIST
+from .create_channel import *
+bot_username = os.getenv('BOT_USERNAME')
+telegram_user = os.getenv('TELEGRAM_USER')
 
 ASK_FOR_TOPIC, ASK_FOR_DIFF, ASK_FOR_NUM_ANS = range(3)
 ASK_FOR_API_HASH, ASK_FOR_PHONE_NUMBER, ASK_FOR_API_ID = range(3)
@@ -190,5 +193,28 @@ async def connect_to_telegram_API(update: Update, context: CallbackContext) -> N
             client = TelegramClient('user_session13', str(api_id), str(api_hash))
             await client.start(phone)
             await update.message.reply_text("hi you are now connected to telegram api")
+            user_id = update.effective_user.id
+            result = await client(functions.channels.CreateChannelRequest(
+            title='training channel',
+            about='this channel helps users to make programming competitions ',
+            megagroup=True,  
+            for_import=False,  
+            forum=False,  
+        ))
+            if result and result.chats and len(result.chats) > 0:
+                new_channel = result
+                await update.message.reply_text(new_channel)
+            else:
+                await update.message.reply_text("Failed to create channel. Please check the API credentials or permissions.")
+            #new_channel = result.chats[0]
+            invite = await client(functions.messages.ExportChatInviteRequest(
+            peer=new_channel.id
+            ))
+            invite_link = invite.link
+            await add_bot_as_admin(client, new_channel.id, bot_username)
+            await update.message.reply_text(invite_link)
+            await send_message_to_channel(client, new_channel.id,'hello, I will be your trainer, tell me when you are ready')
+            await invite_members_to_channel(client,new_channel.id,telegram_user)
+            await check_users_and_monitor_ready_messages(client,new_channel.id)
         except Exception as e:
             await update.message.reply_text(f"An unexpected error occurred: {str(e)}")
