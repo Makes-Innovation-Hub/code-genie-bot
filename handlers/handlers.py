@@ -161,19 +161,16 @@ async def create_challenge(update: Update, context: CallbackContext) -> int:
     await update.message.reply_text("Please provide your API_ID:")
     return ASK_FOR_API_ID
 
-# api id handler
 async def get_api_id(update: Update, context: CallbackContext) -> str:
     context.user_data['API_ID'] = update.message.text
     await update.message.reply_text("Thanks! Now, what's your API_HASH?")
     return ASK_FOR_API_HASH
 
-# api hash handler
 async def get_api_hash(update: Update, context: CallbackContext) -> str:
     context.user_data['API_HASH'] = update.message.text
     await update.message.reply_text("Great! Finally, what is your phone number?")
     return ASK_FOR_PHONE_NUMBER
 
-# phone number handler
 async def get_phone_number(update: Update, context: CallbackContext) -> str:
     context.user_data['PHONE_NUMBER'] = update.message.text
     user_data = context.user_data
@@ -185,12 +182,13 @@ async def get_phone_number(update: Update, context: CallbackContext) -> str:
 
 
 async def connect_to_telegram_API(update: Update, context: CallbackContext) -> None:
+        
         api_id= int(context.user_data['API_ID'])
         api_hash= context.user_data['API_HASH']
         phone=  context.user_data['PHONE_NUMBER']
-        await update.message.reply_text(api_id)
-        await update.message.reply_text(api_hash)
-        await update.message.reply_text(phone)
-        client = TelegramClient('user_session13', str(api_id), str(api_hash))
-        await client.start(phone)
-        await update.message.reply_text("hiiii from create!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        try:
+            client = TelegramClient('user_session13', str(api_id), str(api_hash))
+            await client.start(phone)
+            await update.message.reply_text("hi you are now connected to telegram api")
+        except Exception as e:
+            await update.message.reply_text(f"An unexpected error occurred: {str(e)}")
