@@ -1,7 +1,7 @@
 import argparse
 from config.config_env import create_config_env
-from handlers.conversation import conversation_handler_question
-from handlers.handlers import *
+from handlers.conversation_handler import conversation_handler_question
+from handlers.basic_handlers import *
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 import os
 from dotenv import load_dotenv
@@ -30,7 +30,6 @@ def main():
         application.add_handler(CommandHandler("ip", get_public_ip_command))
         application.add_handler(CommandHandler('api', api_command))
         application.add_handler(conversation_handler_question())
-        application.add_handler(CallbackQueryHandler(button))
 
         # Start the Bot
         application.run_polling()

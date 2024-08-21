@@ -1,6 +1,7 @@
 import random
 from telegram import InlineKeyboardButton
 
+
 def get_keyboard(answers, original_answers):
     answers_lengths = [len(answer) for answer in answers]
     max_length = max(answers_lengths)
@@ -26,7 +27,6 @@ def get_keyboard(answers, original_answers):
     return keyboard
 
 
-
 def style_questions_answers(response_data):
     question = response_data.get('Question', 'No question found')
     answers = response_data.get('Answer', 'There is no options').copy()
@@ -36,10 +36,9 @@ def style_questions_answers(response_data):
     options = ""
     if len(answers) > 1:
         options = "<b>Options:</b>\n"
-        keyboard = get_keyboard(answers,original_answers)
+        keyboard = get_keyboard(answers, original_answers)
         answers_lengths = [len(answer) for answer in answers]
         if max(answers_lengths) > 24:
-            for i  in range(len(answers)):
-                options += f'{i+1}) ' + answers[i] + '\n'
+            for i in range(len(answers)):
+                options += f'{i + 1}) ' + answers[i] + '\n'
     return [question, options, keyboard]
-    
