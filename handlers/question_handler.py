@@ -1,12 +1,12 @@
 import os
 import random
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes, CallbackContext, ConversationHandler
 import requests
 from config.CONSTANTS import DIFFICULTY_LIST
 from handlers.helper_functions import style_questions_answers
 
-ASK_FOR_TOPIC, ASK_FOR_DIFF, ASK_FOR_NUM_ANS, USER_ANSWER = range(4)
+ASK_FOR_TOPIC, ASK_FOR_DIFF, ASK_FOR_NUM_ANS, USER_ANSWER, ASK_FOR_NEW_TOPIC = range(5)
 
 
 def get_diff_keyboard():
@@ -22,18 +22,65 @@ def get_num_ans_keyboard():
                                one_time_keyboard=True)
 
 
+async def get_topics_handler(update: Update, context: CallbackContext):
+    try:
+        response = requests.get(f'{os.getenv("SERVER_URL")}/question/topics/')
+        topics = response.json()
+        context.user_data['allowed_topics'] = topics
+        return topics
+    except requests.exceptions.RequestException as e:
+        await update.message.reply_text(f"An error occurred: {e}")
+
+
+async def get_topic_keyboard(update: Update, context: CallbackContext):
+    topics = await (get_topics_handler(update, context))
+    topics.append('other topic')
+    buttons = [InlineKeyboardButton(text=topic, callback_data=topic) for topic in topics]
+    keyboard = InlineKeyboardMarkup.from_column(buttons)
+    return keyboard
+
+
 async def start_conversation(update: Update, context: CallbackContext):
-    await update.message.reply_text("Please provide a topic for the question:")
+    buttons = await get_topic_keyboard(update, context)
+    await update.message.reply_text("Please provide a topic for the question:", reply_markup=buttons)
     return ASK_FOR_TOPIC
 
 
 async def handle_topic(update: Update, context: CallbackContext):
-    topic = update.message.text
-    context.user_data['topic'] = topic
-    await update.message.reply_text(f"Please provide a difficulty from following options {DIFFICULTY_LIST}:",
-                                    reply_markup=get_diff_keyboard())
+    query = update.callback_query
+    await query.answer()
+    if query.data == 'other topic':
+        await query.edit_message_text(text="Please enter the new topic:")
+        return ASK_FOR_NEW_TOPIC
+    else:
+        context.user_data['topic'] = query.data
+        await query.edit_message_text(text=f"You selected '{context.user_data['topic']}' topic")
+        await query.message.reply_text(
+            text=f"Please provide a difficulty from the following options {DIFFICULTY_LIST}:",
+            reply_markup=get_diff_keyboard()
+        )
     return ASK_FOR_DIFF
 
+
+async def add_new_topic_handler(update: Update, context: CallbackContext):
+    new_topic = update.message.text
+    try:
+        response = requests.post(f'{os.getenv("SERVER_URL")}/question/topics?topic={new_topic}')
+        if response.status_code == 409:
+            await update.message.reply_text(response.json()['detail'])
+            await update.message.reply_text("You can write another topic or use /cancel and start over")
+            return ASK_FOR_NEW_TOPIC
+    except requests.exceptions.RequestException as e:
+        await update.message.reply_text(f"An error occurred: {e}")
+
+    context.user_data['topic'] = new_topic
+    await update.message.reply_text(f"You selected '{new_topic}' as the new topic.")
+
+    await update.message.reply_text(
+        text=f"Please provide a difficulty from the following options {DIFFICULTY_LIST}:",
+        reply_markup=get_diff_keyboard()
+    )
+    return ASK_FOR_DIFF
 
 async def handle_diff(update: Update, context: CallbackContext):
     diff = update.message.text
