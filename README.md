@@ -29,18 +29,34 @@ To load environment variables from a `.env` file in Python, you can use the `pyt
 	 bot_token = os.getenv('BOT_TOKEN')  
 	 ```
 Run command for genie_bot :   
-1. To run in dev env:
-	```sh   
-	python genie_bot.py dev
-	#or 
-	python genie_bot.py
-	``` 
-2. 	To run in production env:  
+1. To run in dev env there are two options:
 
-	```sh   
+- ```shell
+  python genie_bot.py dev # Explicit run
+  ```
+
+- ```shell
+  python genie_bot.py # Implicit run
+  ```
+
+2. To run in production env:
+
+	```shell 
 	python genie_bot.py prod
 	``` 
 
+# Testing
+
+**NOTE:** Make sure that the server is up and running.
+
+In order to run tests for the project you have to run the following commands:
+
+```shell
+cd path/to/your/project # Replace with the path to your project (root)
+pytest
+```
+
+# Project Structure
 
 ├── code-genie-bot \  
 │  # Package initialization \  
