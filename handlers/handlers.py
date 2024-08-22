@@ -7,6 +7,9 @@ from telethon import TelegramClient, events,functions,types
 from config import CONSTANTS
 from config.CONSTANTS import DIFFICULTY_LIST
 from .create_channel import *
+from telethon.tl.types import InputPeerChannel
+from dotenv import load_dotenv
+
 bot_username = os.getenv('BOT_USERNAME')
 telegram_user = os.getenv('TELEGRAM_USER')
 
@@ -185,36 +188,53 @@ async def get_phone_number(update: Update, context: CallbackContext) -> str:
 
 
 async def connect_to_telegram_API(update: Update, context: CallbackContext) -> None:
-        
-        api_id= int(context.user_data['API_ID'])
-        api_hash= context.user_data['API_HASH']
-        phone=  context.user_data['PHONE_NUMBER']
-        try:
-            client = TelegramClient('user_session13', str(api_id), str(api_hash))
-            await client.start(phone)
-            await update.message.reply_text("hi you are now connected to telegram api")
-            user_id = update.effective_user.id
-            result = await client(functions.channels.CreateChannelRequest(
+    api_id = int(context.user_data['API_ID'])
+    api_hash = context.user_data['API_HASH']
+    phone = context.user_data['PHONE_NUMBER']
+
+    try:
+        client = TelegramClient('user_session13', api_id, api_hash)
+        await client.start(phone)
+        await update.message.reply_text("Hi, you are now connected to the Telegram API")
+
+        result = await client(functions.channels.CreateChannelRequest(
             title='training channel',
-            about='this channel helps users to make programming competitions ',
-            megagroup=True,  
-            for_import=False,  
-            forum=False,  
+            about='This channel helps users to participate in programming competitions',
+            megagroup=True,
+            for_import=False,
+            forum=False
         ))
-            if result and result.chats and len(result.chats) > 0:
-                new_channel = result
-                await update.message.reply_text(new_channel)
-            else:
-                await update.message.reply_text("Failed to create channel. Please check the API credentials or permissions.")
-            #new_channel = result.chats[0]
+
+        if result and result.chats and len(result.chats) > 0:
+            new_channel = result.chats[0]
+            new_channel_id = new_channel.id
+            await update.message.reply_text(f"Channel created with ID: {new_channel_id}")
+
             invite = await client(functions.messages.ExportChatInviteRequest(
-            peer=new_channel.id
+                peer=new_channel
             ))
             invite_link = invite.link
-            await add_bot_as_admin(client, new_channel.id, bot_username)
-            await update.message.reply_text(invite_link)
-            await send_message_to_channel(client, new_channel.id,'hello, I will be your trainer, tell me when you are ready')
-            await invite_members_to_channel(client,new_channel.id,telegram_user)
-            await check_users_and_monitor_ready_messages(client,new_channel.id)
-        except Exception as e:
-            await update.message.reply_text(f"An unexpected error occurred: {str(e)}")
+            await update.message.reply_text(f"Invite link: {invite_link}")
+            try:
+                bot_entity = await client.get_input_entity('@Genie_dev_bot')
+            except Exception as e:
+                await update.message.reply_text(f"Error resolving entities: {str(e)}")
+                return
+
+            await client(functions.channels.InviteToChannelRequest(
+                channel=new_channel,
+                users=[bot_entity]  
+            ))
+            tel_user = '@hosniabo' # for test
+
+            await send_message_to_channel(client, new_channel_id, 'Hello, I will be your trainer, tell me when you are ready')
+            await add_bot_as_admin(client, new_channel.id, bot_entity)
+
+            await invite_members_to_channel(client,new_channel.id,tel_user)
+            await check_users_and_monitor_ready_messages(client, new_channel.id)
+
+        else:
+            await update.message.reply_text("Failed to create channel. Please check the API credentials or permissions.")
+
+    except Exception as e:
+        await update.message.reply_text(f"An unexpected error occurred: {str(e)}")
