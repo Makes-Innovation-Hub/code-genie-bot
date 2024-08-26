@@ -1,36 +1,58 @@
 import logging
-import logging.handlers
+import uuid
 import os
+import glob
 
-# Create logs directory if not exists
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+def get_file_size(file_path):
+    return os.path.getsize(file_path)
 
-# Log file settings
-log_file = 'logs/app.log'
-max_log_size = 1024 * 1024 * 5  # 5 MB
-backup_count = 3
+def find_latest_log_file(directory, file_extension='*.log'):
+    search_pattern = os.path.join(directory, file_extension)
+    log_files = glob.glob(search_pattern)
+    if not log_files:
+        print("No log files found in the directory.")
+        return None
+    latest_log_file = max(log_files, key=os.path.getctime)
+    size = os.path.getsize(latest_log_file)
+    print(f"The most recently created log file is: {latest_log_file}")
+    return latest_log_file
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s [%(levelname)s] [%(req_id)s] %(message)s',
-    handlers=[
-        logging.handlers.RotatingFileHandler(
-            log_file, maxBytes=max_log_size, backupCount=backup_count, encoding='utf-8'
-        ),
-        logging.StreamHandler()
-    ]
-)
+def logfile_to_send():
+    logs_directory = 'logs'
+    if not os.path.exists(logs_directory):
+        os.makedirs(logs_directory)
 
-class RequestIDFilter(logging.Filter):
+    last_log = find_latest_log_file(logs_directory)
+    if last_log is not None:
+        last_log_size = get_file_size(last_log)
+        log_number = ''.join([i for i in last_log if i.isdigit()])
+        if log_number:
+            number = int(log_number)
+        else:
+            number = 0
+        if last_log_size >= 20000:
+            number += 1
+    else:
+        number = 0
+
+    next_log_file = f"log{number}.log"
+    log_file = os.path.join(logs_directory, next_log_file)
+    return log_file
+
+file_name = logfile_to_send()
+logging.basicConfig(level=logging.INFO, filename=file_name,
+                    format="%(asctime)s - %(levelname)s - %(processName)s - %(message)s")
+
+logging.getLogger('requests').setLevel(logging.WARNING)
+logging.getLogger('httpx').setLevel(logging.WARNING)
+logging.getLogger('aiohttp').setLevel(logging.WARNING)
+logging.getLogger('telegram').setLevel(logging.WARNING)
+
+class HTTPRequestFilter(logging.Filter):
     def filter(self, record):
-        record.req_id = getattr(record, 'req_id', 'no-id')
-        return True
+        return 'HTTP Request' not in record.getMessage()
 
-logging.getLogger().addFilter(RequestIDFilter())
-
+logging.getLogger().addFilter(HTTPRequestFilter())
 
 def generate_request_id():
-    import uuid
     return str(uuid.uuid4())

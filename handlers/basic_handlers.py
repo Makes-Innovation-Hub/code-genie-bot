@@ -1,11 +1,13 @@
 import os
+from telegram import Update
+from telegram.ext import  ContextTypes, CallbackContext
 import requests
 import logging
-from config.logging_config import logging, generate_request_id
 from telegram import Update
 from telegram.ext import ContextTypes
 
 from config import CONSTANTS
+from config.logging_config import generate_request_id
 
 # Initialize the logger
 logger = logging.getLogger(__name__)

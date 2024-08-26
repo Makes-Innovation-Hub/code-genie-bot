@@ -1,4 +1,5 @@
 import argparse
+import logging
 from config.config_env import create_config_env
 from handlers.conversation_handler import conversation_handler_question
 from handlers.basic_handlers import *
@@ -42,7 +43,8 @@ def main():
         application.add_handler(conversation_handler_question())
 
         # Start the Bot
-        logger.info("Starting bot", extra={"req_id": generate_request_id()})
+        request_id = generate_request_id()
+        logger.info("Starting bot", extra={"req_id": request_id})
         application.run_polling()
     except Exception as e:
         print('e: ', e)
