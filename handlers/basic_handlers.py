@@ -1,10 +1,10 @@
 import os
-import sys
-from telegram import Update
-from telegram.ext import ContextTypes, CallbackContext
 import requests
 import logging
 from config.logging_config import logging, generate_request_id
+from telegram import Update
+from telegram.ext import ContextTypes
+
 from config import CONSTANTS
 
 # Initialize the logger
@@ -32,15 +32,6 @@ async def get_public_ip_command(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text(f'Failed to get public IP address: {e}')
         logger.info("Failed to get public IP address", extra={"req_id": generate_request_id()})
         return False
-
-async def question_command(update: Update, context: CallbackContext) -> None:
-    try:
-        response = requests.post(f'{os.getenv("SERVER_URL")}question/generate')
-        await update.message.reply_text(f"Server response: {response.json()}")
-        logger.info("Get question command succeeded", extra={"req_id": generate_request_id()})
-    except requests.exceptions.RequestException as e:
-        logger.info("Failed to get question", extra={"req_id": generate_request_id()})
-        await update.message.reply_text(f"An error occurred: {e}")
 
 
 async def api_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
