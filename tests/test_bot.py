@@ -8,6 +8,7 @@ from genie_bot import *
 import statistics
 from config import CONSTANTS
 
+
 @pytest.mark.asyncio
 async def test_start_command():
     update = AsyncMock(Update)
@@ -19,6 +20,7 @@ async def test_start_command():
 
     update.message.reply_text.assert_called_once_with('Hello! I am your bot. How can I help you?')
 
+
 @pytest.mark.asyncio
 async def test_help_command():
     update = AsyncMock(Update)
@@ -29,6 +31,7 @@ async def test_help_command():
     await help_command(update, context)
 
     update.message.reply_text.assert_called_once_with(CONSTANTS.HELP_COMMAND_TEXT)
+
 
 @pytest.mark.asyncio
 async def test_get_public_ip_command_success():
@@ -50,6 +53,7 @@ async def test_get_public_ip_command_success():
         update.message.reply_text.assert_called_once_with('The public IP address of the bot is: 123.123.123.123')
         assert result is True
 
+
 @pytest.mark.asyncio
 async def test_get_public_ip_command_failure():
     # Setup Mocks
@@ -70,6 +74,7 @@ async def test_get_public_ip_command_failure():
         update.message.reply_text.assert_called_once_with(expected_error_message)
         assert result is False
 
+
 @patch('requests.post')
 async def test_question_command_success():
     mock_response = MagicMock()
@@ -77,10 +82,11 @@ async def test_question_command_success():
     mock_update = AsyncMock(Update)
     mock_context = AsyncMock(ContextTypes.DEFAULT_TYPE)
     message = AsyncMock(Message)
-    
+
     mock_update.message = message
     await question_command(mock_update, mock_context)
     mock_update.message.reply_text.assert_called_with("Server response: Here is your coding question.")
+
 
 @patch('requests.post')
 async def test_question_command_failure():
@@ -88,11 +94,12 @@ async def test_question_command_failure():
     mock_response.json.return_value = {"response": "Here is your coding question."}
     mock_update = AsyncMock(Update)
     mock_context = AsyncMock(ContextTypes.DEFAULT_TYPE)
-    
+
     with patch('genie_bot.requests.post') as mock_post:
         mock_post.side_effect = requests.exceptions.RequestException("Network error")
         await question_command(mock_update, mock_context)
         mock_update.message.reply_text.assert_called_with("An error occurred: Network error")
+
 
 @patch('requests.post')
 async def test_question_command_latency():
@@ -118,6 +125,7 @@ async def test_question_command_latency():
 
         assert average_latency > 0  # Ensure latency is measured
         mock_update.message.reply_text.assert_called_with("Server response: Here is your coding question.")
+
 
 @pytest.mark.asyncio
 async def test_api_command_success():
@@ -157,6 +165,7 @@ async def test_api_command_request_failure():
         # Assertions
         update.message.reply_text.assert_called_once_with('Request failed: Failed to connect')
 
+
 @pytest.mark.asyncio
 async def test_api_command_unexpected_error():
     # Setup Mocks
@@ -174,4 +183,3 @@ async def test_api_command_unexpected_error():
 
         # Assertions
         update.message.reply_text.assert_called_once_with('An unexpected error occurred: Unexpected error')
-        
