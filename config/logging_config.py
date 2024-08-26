@@ -41,7 +41,7 @@ def logfile_to_send():
 
 file_name = logfile_to_send()
 logging.basicConfig(level=logging.INFO, filename=file_name,
-                    format="%(asctime)s - %(levelname)s - %(processName)s - %(message)s")
+                    format='%(asctime)s - %(name)s - %(levelname)s - [%(req_id)s] - %(message)s')
 
 logging.getLogger('requests').setLevel(logging.WARNING)
 logging.getLogger('httpx').setLevel(logging.WARNING)
